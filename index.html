@@ -125,7 +125,10 @@
 			if (query > 0) {
 				locationfile = window.location.href.substr(window.location.href.search('list=')+5) + '.js';
 			}
-			$.getScript(locationfile, function() {
+			var locations = {};
+			$.getJSON(locationfile, function(locationsData) {
+				// Horrible, but easier than reworking the code
+				locations = locationsData;
 
 				var internal_names = Object.keys(locations).sort();
 				var listHtml = internal_names.map(renderListItem).join("");
@@ -173,17 +176,14 @@
 					var groupMarker = markers[this.name];
 
 					if ($(this).is(':checked')) {
-
-						var markerOptions = {
-							icon: icons[stringToValue(this.name) % icons.length],
-							keyboard: false,
-							title: getExpandedName(this.name)
-						};
-
 						var targetLocations = locations[this.name].locations;
 						var newMarkers = targetLocations.map(target => {
-							var coords = map.unproject(target, 0);
-							return L.marker(coords, markerOptions);
+							var coords = map.unproject(target.pos, 0);
+								return L.marker(coords, {
+									icon: icons[stringToValue(this.name) % icons.length],
+									keyboard: false,
+									title: `${getExpandedName(this.name)} | hash_id: ${target.hash_id} | ${target.file}`,
+								});
 						});
 						groupMarker.addLayers(newMarkers);
 						map.addLayer(groupMarker);
