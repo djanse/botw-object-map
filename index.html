@@ -88,7 +88,7 @@
 			<ul class="list"></ul>
 		</div>
 		<div>
-			Note that many objects are dynamically generated and are not included in this data. For more BotW datamining, see MrCheeze's <a href="https://mrcheeze.github.io/">GitHub</a>. | Click to copy hash ID. <input type="checkbox" id="input-copy-as-hex"><label for="input-copy-as-hex">Copy as hex</label>
+			Note that many objects are dynamically generated and are not included in this data. For more BotW datamining, see MrCheeze's <a href="https://mrcheeze.github.io/">GitHub</a>. | Click to copy hash ID. <input type="checkbox" id="input-as-hex"><label for="input-as-hex">Use hex</label>
 		</div>
 		<script>
 		function copyToClipboard(text) {
@@ -184,12 +184,13 @@
 					}
 				};
 
-				function copyIdToClipboard(id) {
-					const asHex = document.getElementById("input-copy-as-hex").checked;
-					if (asHex)
-						copyToClipboard('0x' + id.toString(16).padStart(8, '0'));
-					else
-						copyToClipboard(id.toString());
+				function idToHexString(id) {
+					return '0x' + id.toString(16).padStart(8, '0');
+				}
+
+				function idToString(id) {
+					const asHex = document.getElementById("input-as-hex").checked;
+					return asHex ? idToHexString(id) : id.toString();
 				}
 
 				// Note: in case we want to load the sidebar items asynchronously, using this style of event
@@ -207,8 +208,8 @@
 								return L.marker(coords, {
 									icon: icons[stringToValue(this.name) % icons.length],
 									keyboard: false,
-									title: `${getExpandedName(this.name)} | hash_id: ${target.hash_id} | ${target.file}`,
-								}).on('click', () => copyIdToClipboard(target.hash_id));
+									title: `${getExpandedName(this.name)} | hash_id: ${target.hash_id} (${idToHexString(target.hash_id)}) | ${target.file}`,
+								}).on('click', () => copyToClipboard(idToString(target.hash_id)));
 						});
 						groupMarker.addLayers(newMarkers);
 						map.addLayer(groupMarker);
