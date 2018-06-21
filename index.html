@@ -87,7 +87,24 @@
 			</div>
 			<ul class="list"></ul>
 		</div>
-		<div>Note that many objects are dynamically generated and are not included in this data. For more BotW datamining, see MrCheeze's <a href="https://mrcheeze.github.io/">GitHub/Pastebin</a>.</div>
+		<div>
+			Note that many objects are dynamically generated and are not included in this data. For more BotW datamining, see MrCheeze's <a href="https://mrcheeze.github.io/">GitHub</a>. | Click to copy hash ID.
+		</div>
+		<script>
+		function copyToClipboard(text) {
+			let textarea = document.createElement("textarea");
+			textarea.textContent = text;
+			textarea.style.position = "fixed";
+			document.body.appendChild(textarea);
+			textarea.select();
+			try {
+				document.execCommand("copy");
+			} catch (ex) {
+			} finally {
+				document.body.removeChild(textarea);
+			}
+		}
+		</script>
 		<script>
 			var presets = {"AttackUp":["Animal_Insect_G", "Item_Plant_G", "Item_Fruit_H", "Item_Mushroom_L",
 									   "Animal_Fish_E", "Item_FishGet_E", "Animal_Insect_K", "Animal_Fish_F", "Item_FishGet_F"],
@@ -183,7 +200,7 @@
 									icon: icons[stringToValue(this.name) % icons.length],
 									keyboard: false,
 									title: `${getExpandedName(this.name)} | hash_id: ${target.hash_id} | ${target.file}`,
-								});
+								}).on('click', () => copyToClipboard(target.hash_id));
 						});
 						groupMarker.addLayers(newMarkers);
 						map.addLayer(groupMarker);
