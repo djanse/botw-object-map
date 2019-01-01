@@ -134,8 +134,15 @@
 			var southWest = map.unproject([-6000, 5000], 0);
 			var northEast = map.unproject([6000, -5000], 0);
 			var bounds = new L.LatLngBounds(southWest, northEast);
-			L.imageOverlay('BotW-Map-Grid.png', bounds).addTo(map);
+			const imageLayer = L.imageOverlay('BotW-Map-Grid.png', bounds, {interactive: true});
+			imageLayer.addTo(map);
 			map.setMaxBounds(bounds);
+
+			imageLayer.on("contextmenu", ({ latlng }) => {
+				const x = latlng.lng;
+				const z = -latlng.lat;
+				copyToClipboard(`${x},${z}`);
+			});
 
 			var query = window.location.href.search('list=');
 			var locationfile = 'map_locations.js';
