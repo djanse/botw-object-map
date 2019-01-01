@@ -4,11 +4,13 @@
 		<meta charset="utf-8">
 		<script src='jquery-1.12.0.min.js'></script>
 		<link rel="stylesheet" href="leaflet.css" />
+		<link rel="stylesheet" href="leaflet.contextmenu.min.css" />
 		<link rel="stylesheet" href="MarkerCluster.css" />
 		<link rel="stylesheet" href="chosen.min.css" />
 		<script src="leaflet.js"></script>
 		<script src="list.min.js"></script>
 		<script src="leaflet.markercluster.js"></script>
+		<script src="leaflet.contextmenu.min.js"></script>
 		<script src="chosen.jquery.min.js"></script>
 		<style>
 		body {
@@ -91,6 +93,10 @@
 			Note that many objects are dynamically generated and are not included in this data. For more BotW datamining, see MrCheeze's <a href="https://mrcheeze.github.io/">GitHub</a> and the <a href="https://zeldamods.org">ZeldaMods wiki</a>. | Click to copy hash ID. <input type="checkbox" id="input-as-hex"><label for="input-as-hex">Use hex</label>
 		</div>
 		<script>
+		function clamp(number, min, max) {
+		  return Math.max(min, Math.min(number, max));
+		}
+
 		function copyToClipboard(text) {
 			let textarea = document.createElement("textarea");
 			textarea.textContent = text;
@@ -129,23 +135,25 @@
 				maxZoom: 4,
 				center: [0, 0],
 				zoom: -4,
-				crs: L.CRS.Simple
+				crs: L.CRS.Simple,
+				contextmenu: true,
+				contextmenuItems: [{
+					text: 'Copy coordinates',
+					callback: ({ latlng }) => {
+						const {x, y: z} = map.project(latlng, 0);
+						copyToClipboard(`${x},${z}`);
+					},
+				}],
 			});
 			var southWest = map.unproject([-6000, 5000], 0);
 			var northEast = map.unproject([6000, -5000], 0);
 			var bounds = new L.LatLngBounds(southWest, northEast);
-			const imageLayer = L.imageOverlay('BotW-Map-Grid.png', bounds, {interactive: true});
+			const imageLayer = L.imageOverlay('BotW-Map-Grid.png', bounds);
 			imageLayer.addTo(map);
 			map.setMaxBounds(bounds);
 
-			imageLayer.on("contextmenu", ({ latlng }) => {
-				const x = latlng.lng;
-				const z = -latlng.lat;
-				copyToClipboard(`${x},${z}`);
-			});
-
 			var query = window.location.href.search('list=');
-			var locationfile = 'map_locations.js';
+			var locationfile = 'https://objmap.zeldamods.org/map_locations.js';
 			if (query > 0) {
 				locationfile = window.location.href.substr(window.location.href.search('list=')+5) + '.js';
 			}
@@ -216,6 +224,39 @@
 									icon: icons[stringToValue(this.name) % icons.length],
 									keyboard: false,
 									title: `${getExpandedName(this.name)} | hash_id: ${target.hash_id} (${idToHexString(target.hash_id)}) | ${target.file}`,
+									contextmenu: true,
+									contextmenuItems: [{
+										text: 'Show no-revival area',
+										callback: ({ latlng }) => {
+											const {x, y: z} = map.project(latlng, 0);
+											const col = clamp(((x + 5000) / 1000)|0, 0, 9);
+											const row = clamp(((z + 4000) / 1000)|0, 0, 7);
+
+											let minx = (col-1) * 1000 - 4500;
+											let maxx = (col+1) * 1000 - 4500;
+											minx = clamp(minx, -5000, 5000);
+											maxx = clamp(maxx, -5000, 5000);
+
+											let minz = (row-1) * 1000 - 3500;
+											let maxz = (row+1) * 1000 - 3500;
+											minz = clamp(minz, -4000, 4000);
+											maxz = clamp(maxz, -4000, 4000);
+
+											const pt1 = map.unproject([minx, minz], 0);
+											const pt2 = map.unproject([maxx, maxz], 0);
+											const rect = L.rectangle([pt1, pt2], {
+												color: "#ff7800",
+												weight: 2,
+												contextmenu: true,
+												contextmenuItems: [{
+													text: 'Hide',
+													callback: () => { rect.remove(); },
+												}],
+											});
+											rect.addTo(map);
+										},
+										index: 0,
+									}],
 								}).on('click', () => copyToClipboard(idToString(target.hash_id)));
 						});
 						groupMarker.addLayers(newMarkers);
